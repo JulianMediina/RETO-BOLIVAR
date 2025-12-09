@@ -1,0 +1,158 @@
+import { useState, useEffect } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { useQuery, useMutation } from "convex/react";
+import { useUser } from "@clerk/clerk-react";
+import { api } from "../../convex/_generated/api";
+import MovieForm from "../components/MovieForm";
+import { ArrowLeft, Edit as EditIcon , Loader2 } from "lucide-react";
+import type { Id } from "../../convex/_generated/dataModel";
+
+/** Tipo local para película proveniente de Convex */
+interface MovieData {
+  _id: Id<"movies">;
+  titulo: string;
+  genero: string;
+  anio: number;
+  director: string;
+  poster?: string;
+  userId: string;
+}
+
+/**
+ * Página para editar una película existente
+ */
+const Edit = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Obtener la película a editar
+  const movie = useQuery(
+    api.movies.getMovie,
+    user && id
+      ? { id: id as Id<"movies">, userId: user.id }
+      : "skip"
+  ) as MovieData | undefined | null;
+
+  // Mutation para actualizar
+  const updateMovie = useMutation(api.movies.updateMovie);
+
+  // Validar ID
+  useEffect(() => {
+    if (!id) navigate("/");
+  }, [id, navigate]);
+
+  // Submit del formulario
+  const handleSubmit = async (formData: {
+    titulo: string;
+    genero: string;
+    anio: number;
+    director: string;
+    poster: string;
+  }) => {
+    if (!user || !id) {
+      alert("Error: Datos incompletos");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await updateMovie({
+        id: id as Id<"movies">,
+        userId: user.id,
+        titulo: formData.titulo,
+        genero: formData.genero,
+        anio: formData.anio,
+        director: formData.director,
+        poster: formData.poster || undefined,
+      });
+
+      navigate("/", {
+        state: { message: "Película actualizada exitosamente" },
+      });
+    } catch (error: any) {
+      console.error("Error al actualizar película:", error);
+      alert(error?.message || "Error inesperado");
+      setIsLoading(false);
+    }
+  };
+
+  /** Loading */
+  if (movie === undefined) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary-500 mx-auto mb-4" />
+          <p className="text-gray-600">Cargando película...</p>
+        </div>
+      </div>
+    );
+  }
+
+  /** Película no encontrada */
+  if (!movie) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <h2 className="text-xl font-bold text-red-800 mb-2">
+            Película no encontrada
+          </h2>
+          <p className="text-red-600 mb-4">
+            La película que buscas no existe o no tienes permisos.
+          </p>
+          <Link
+            to="/"
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Volver al catálogo</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      {/* Header */}
+      <div className="mb-6">
+        <Link
+          to="/"
+          className="inline-flex items-center space-x-2 text-primary-600 hover:text-primary-700 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Volver al catálogo</span>
+        </Link>
+
+        <div className="bg-white rounded-lg shadow-md p-6 mt-4">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-primary-100 rounded-lg">
+              <EditIcon  className ="w-6 h-6 text-primary-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">
+                Editar Película
+              </h1>
+              <p className="text-gray-600">
+                Modifica la información de "{movie.titulo}"
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Formulario */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <MovieForm
+          initialData={movie}
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default Edit;
