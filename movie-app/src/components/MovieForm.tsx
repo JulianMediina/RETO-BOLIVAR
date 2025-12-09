@@ -14,7 +14,7 @@ const MovieForm = ({
   isLoading = false 
 }: MovieFormProps) => {
   const navigate = useNavigate()
-  const { loading: posterLoading, error: posterError, posterData, searchPoster, reset: resetPoster } = usePoster()
+  const { loading: posterLoading, error: posterError, searchPoster, reset: resetPoster } = usePoster()
   
   // Estado del formulario
   const [formData, setFormData] = useState<MovieFormData>({
@@ -69,14 +69,13 @@ const MovieForm = ({
       setFormData(prev => ({
         ...prev,
         poster: result.poster || '',
-        // Auto-completar campos si están vacíos
         genero: prev.genero || result.genre || prev.genero,
         anio: prev.anio || parseInt(result.year || '') || prev.anio,
         director: prev.director || result.director || prev.director,
       }))
       setPosterSearched(true)
     } else {
-      setPosterSearched(false)
+      setPosterSearched(true)
     }
   }
 
@@ -160,6 +159,11 @@ const MovieForm = ({
         {posterError && (
           <p className="mt-1 text-sm text-amber-600">{posterError}</p>
         )}
+
+        {/* Mensaje cuando no hay resultados */}
+        {posterSearched && !formData.poster && !posterError && !posterLoading && (
+          <p className="mt-2 text-sm text-amber-600">No se encontró un póster para este título.</p>
+        )}
       </div>
 
       {/* Preview del Poster */}
@@ -171,6 +175,7 @@ const MovieForm = ({
               alt="Poster preview"
               className="w-48 h-72 object-cover rounded-lg shadow-lg"
               onError={() => setFormData(prev => ({ ...prev, poster: '' }))}
+
             />
             <button
               type="button"
