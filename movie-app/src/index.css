@@ -1,22 +1,72 @@
 @import "tailwindcss";
 
-@theme {
-  --color-light: #ffffff;
-  --color-dark: #171717;
+/* ------------------------------
+   Estilos base 
+------------------------------ */
+
+body {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-color-scheme: dark) {
-  body {
-    color: var(--color-light);
-    background: var(--color-dark);
-    font-family: Arial, Helvetica, sans-serif;
-  }
+* {
+  box-sizing: border-box;
+  scroll-behavior: smooth;
 }
 
-@media (prefers-color-scheme: light) {
-  body {
-    color: var(--color-dark);
-    background: var(--color-light);
-    font-family: Arial, Helvetica, sans-serif;
-  }
+/* ------------------------------
+   Utilidades personalizadas
+------------------------------ */
+.line-clamp-1 {
+  line-clamp: 1;
+  -webkit-line-clamp: 1;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ------------------------------
+   Accesibilidad
+------------------------------ */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary, #3b82f6);
+}
+
+/* ------------------------------
+   Scrollbar
+------------------------------ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
