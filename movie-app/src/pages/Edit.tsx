@@ -1,62 +1,46 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
-import { useQuery, useMutation } from "convex/react";
-import { useUser } from "@clerk/clerk-react";
-import { api } from "../../convex/_generated/api";
-import MovieForm from "../components/MovieForm";
-import { ArrowLeft, Edit as EditIcon , Loader2 } from "lucide-react";
-import type { Id } from "../../convex/_generated/dataModel";
-
-/** Tipo local para película proveniente de Convex */
-interface MovieData {
-  _id: Id<"movies">;
-  titulo: string;
-  genero: string;
-  anio: number;
-  director: string;
-  poster?: string;
-  userId: string;
-}
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams, Link } from 'react-router'
+import { useQuery, useMutation } from 'convex/react'
+import { useUser } from '@clerk/clerk-react'
+import { api } from '../../convex/_generated/api'
+import MovieForm from '../components/MovieForm'
+import { ArrowLeft, Edit, Loader2 } from 'lucide-react'
+import type { Id } from '../../convex/_generated/dataModel'
+import type { MovieFormData } from '../types'
 
 /**
  * Página para editar una película existente
  */
-const Edit = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { user } = useUser();
-  const [isLoading, setIsLoading] = useState(false);
+const EditPage = () => {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const { user } = useUser()
+  const [isLoading, setIsLoading] = useState(false)
 
   // Obtener la película a editar
   const movie = useQuery(
     api.movies.getMovie,
-    user && id
-      ? { id: id as Id<"movies">, userId: user.id }
-      : "skip"
-  ) as MovieData | undefined | null;
+    user && id ? { id: id as Id<"movies">, userId: user.id } : 'skip'
+  )
 
-  // Mutation para actualizar
-  const updateMovie = useMutation(api.movies.updateMovie);
+  // Mutation para actualizar película
+  const updateMovie = useMutation(api.movies.updateMovie)
 
-  // Validar ID
+  // Verificar si el ID es válido
   useEffect(() => {
-    if (!id) navigate("/");
-  }, [id, navigate]);
+    if (!id) {
+      navigate('/')
+    }
+  }, [id, navigate])
 
-  // Submit del formulario
-  const handleSubmit = async (formData: {
-    titulo: string;
-    genero: string;
-    anio: number;
-    director: string;
-    poster: string;
-  }) => {
+  // Manejar submit del formulario
+  const handleSubmit = async (formData: MovieFormData) => {
     if (!user || !id) {
-      alert("Error: Datos incompletos");
-      return;
+      alert('Error: Datos incompletos')
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
       await updateMovie({
@@ -67,31 +51,30 @@ const Edit = () => {
         anio: formData.anio,
         director: formData.director,
         poster: formData.poster || undefined,
-      });
+      })
 
-      navigate("/", {
-        state: { message: "Película actualizada exitosamente" },
-      });
-    } catch (error: any) {
-      console.error("Error al actualizar película:", error);
-      alert(error?.message || "Error inesperado");
-      setIsLoading(false);
+      // Redirigir al home
+      navigate('/')
+    } catch (error) {
+      console.error('Error al actualizar película:', error)
+      alert(error instanceof Error ? error.message : 'Error al actualizar la película')
+      setIsLoading(false)
     }
-  };
+  }
 
-  /** Loading */
+  // Loading state
   if (movie === undefined) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-primary-500 mx-auto mb-4" />
+          <Loader2 className="size-12 animate-spin text-primary-500 mx-auto mb-4" />
           <p className="text-gray-600">Cargando película...</p>
         </div>
       </div>
-    );
+    )
   }
 
-  /** Película no encontrada */
+  // Si no se encuentra la película
   if (!movie) {
     return (
       <div className="max-w-3xl mx-auto">
@@ -100,18 +83,18 @@ const Edit = () => {
             Película no encontrada
           </h2>
           <p className="text-red-600 mb-4">
-            La película que buscas no existe o no tienes permisos.
+            La película que buscas no existe o no tienes permisos para editarla.
           </p>
           <Link
             to="/"
-            className="inline-flex items-center space-x-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="size-5" />
             <span>Volver al catálogo</span>
           </Link>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -120,16 +103,16 @@ const Edit = () => {
       <div className="mb-6">
         <Link
           to="/"
-          className="inline-flex items-center space-x-2 text-primary-600 hover:text-primary-700 transition-colors"
+          className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-4 transition-colors"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="size-5" />
           <span>Volver al catálogo</span>
         </Link>
 
-        <div className="bg-white rounded-lg shadow-md p-6 mt-4">
-          <div className="flex items-center space-x-3">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center gap-3">
             <div className="p-3 bg-primary-100 rounded-lg">
-              <EditIcon  className ="w-6 h-6 text-primary-600" />
+              <Edit className="size-6 text-primary-600" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-800">
@@ -152,7 +135,7 @@ const Edit = () => {
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Edit;
+export default EditPage

@@ -1,94 +1,79 @@
-import { useState, ChangeEvent } from 'react';
-import { useQuery, useMutation } from 'convex/react';
-import { useUser } from '@clerk/clerk-react';
-import { api } from '../../convex/_generated/api';
-import MovieCard from '../components/MovieCard';
-import { Loader2, Search, Film, Plus } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Id } from '../../convex/_generated/dataModel';
-
-// Tipo de película desde Convex
-interface Movie {
-  _id: Id<'movies'>;
-  userId: string;
-  titulo: string;
-  genero: string;
-  anio: number;
-  director: string;
-  poster?: string;
-}
+import { useState } from 'react'
+import { useQuery, useMutation } from 'convex/react'
+import { useUser } from '@clerk/clerk-react'
+import { api } from '../../convex/_generated/api'
+import MovieCard from '../components/MovieCard'
+import { Loader2, Search, Film, Plus } from 'lucide-react'
+import { Link } from 'react-router'
+import type { Id } from '../../convex/_generated/dataModel'
 
 /**
  * Página principal - Lista de películas del usuario
  */
-const Home: React.FC = () => {
-  const { user } = useUser();
-  const [searchTerm, setSearchTerm] = useState<string>('');
+const Home = () => {
+  const { user } = useUser()
+  const [searchTerm, setSearchTerm] = useState('')
 
   // Obtener películas del usuario
   const movies = useQuery(
     api.movies.listMovies,
     user ? { userId: user.id } : 'skip'
-  ) as Movie[] | undefined;
+  )
 
   // Mutation para eliminar películas
-  const deleteMovie = useMutation(api.movies.deleteMovie);
+  const deleteMovie = useMutation(api.movies.deleteMovie)
 
   // Manejar eliminación
-  const handleDelete = async (movieId: Id<'movies'>): Promise<void> => {
-    if (!user) return;
-
+  const handleDelete = async (movieId: Id<"movies">) => {
     try {
-      await deleteMovie({ id: movieId, userId: user.id });
+      await deleteMovie({ id: movieId, userId: user!.id })
     } catch (error) {
-      console.error('Error al eliminar película:', error);
+      console.error('Error al eliminar película:', error)
+      throw error
     }
-  };
+  }
 
   // Filtrar películas por búsqueda local
-  const filteredMovies = movies?.filter((movie) =>
+  const filteredMovies = movies?.filter(movie =>
     movie.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
     movie.director.toLowerCase().includes(searchTerm.toLowerCase()) ||
     movie.genero.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  )
 
   // Loading state
   if (movies === undefined) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-primary-500 mx-auto mb-4" />
+          <Loader2 className="size-12 animate-spin text-primary-500 mx-auto mb-4" />
           <p className="text-gray-600">Cargando películas...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="space-y-6">
       {/* Header con búsqueda */}
       <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 flex items-center space-x-2">
-              <Film className="w-8 h-8 text-primary-500" />
+            <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+              <Film className="size-8 text-primary-500" />
               <span>Mis Películas</span>
             </h1>
             <p className="text-gray-600 mt-1">
-              {movies.length}{' '}
-              {movies.length === 1 ? 'película' : 'películas'} en tu catálogo
+              {movies.length} {movies.length === 1 ? 'película' : 'películas'} en tu catálogo
             </p>
           </div>
 
           {/* Barra de búsqueda */}
           <div className="relative w-full md:w-96">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 size-5" />
             <input
               type="text"
               value={searchTerm}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setSearchTerm(e.target.value)
-              }
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por título, director o género..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
             />
@@ -110,7 +95,7 @@ const Home: React.FC = () => {
       ) : (
         // Estado vacío
         <div className="bg-white rounded-lg shadow-md p-12 text-center">
-          <Film className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <Film className="size-16 text-gray-300 mx-auto mb-4" />
           {searchTerm ? (
             <>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
@@ -136,9 +121,9 @@ const Home: React.FC = () => {
               </p>
               <Link
                 to="/create"
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="size-5" />
                 <span>Agregar Película</span>
               </Link>
             </>
@@ -146,7 +131,7 @@ const Home: React.FC = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home
