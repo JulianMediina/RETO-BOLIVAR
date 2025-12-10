@@ -209,8 +209,8 @@ const Catalog = () => {
         <div className="space-y-8 animate-fade-in">
             {/* Header con gradiente */}
             <div className="relative overflow-hidden rounded-2xl shadow-xl">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 opacity-90"></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 opacity-90"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent"></div>
 
                 <div className="relative p-8">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -261,7 +261,7 @@ const Catalog = () => {
                                 <button
                                     onClick={() => handleSearch()}
                                     disabled={loading || !searchTerm.trim()}
-                                    className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center gap-2 shadow-md"
+                                    className="px-6 py-2.5 bg-linear-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-300 font-medium flex items-center gap-2 shadow-md"
                                 >
                                     {loading ? (
                                         <Loader2 className="size-5 animate-spin" />
@@ -326,7 +326,7 @@ const Catalog = () => {
                                 setSearchTerm(suggestion)
                                 setTimeout(() => handleSearch(suggestion), 50)
                             }}
-                            className="px-4 py-2.5 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 text-gray-700 rounded-xl transition-all duration-300 font-medium border border-gray-200 hover:border-gray-300 flex items-center gap-2 group"
+                            className="px-4 py-2.5 bg-linear-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 text-gray-700 rounded-xl transition-all duration-300 font-medium border border-gray-200 hover:border-gray-300 flex items-center gap-2 group"
                         >
                             <span>{suggestion}</span>
                             <ChevronRight className="size-4 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-transform" />
@@ -337,7 +337,7 @@ const Catalog = () => {
 
             {/* Error */}
             {error && (
-                <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-2xl p-6 text-center animate-shake">
+                <div className="bg-linear-to-r from-red-50 to-red-100 border border-red-200 rounded-2xl p-6 text-center animate-shake">
                     <div className="flex items-center justify-center gap-3 mb-3">
                         <div className="p-2 bg-red-100 rounded-lg">
                             <X className="size-6 text-red-600" />
@@ -374,10 +374,10 @@ const Catalog = () => {
                             return (
                                 <div
                                     key={movie.imdbID}
-                                    className="group relative bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-200"
+                                    className="group relative bg-linear-to-br from-white to-gray-50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-200"
                                 >
                                     {/* Poster */}
-                                    <div className="relative aspect-2/3 overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300">
+                                    <div className="relative aspect-2/3 overflow-hidden bg-linear-to-br from-gray-200 to-gray-300">
                                         {/* Usar el componente MoviePoster en lugar de img directo */}
                                         <MoviePoster
                                             src={movie.Poster !== 'N/A' ? movie.Poster : ''}
@@ -386,7 +386,7 @@ const Catalog = () => {
                                         />
 
                                         {/* Overlay con info solo en hover */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                             <div className="absolute bottom-0 left-0 right-0 p-3">
                                                 {/* Aquí podrías agregar información adicional si la obtienes */}
                                             </div>
@@ -398,7 +398,7 @@ const Catalog = () => {
                                             disabled={addingMovie === movie.imdbID || isInFavorites}
                                             className={`absolute top-2 right-2 z-10 p-2 rounded-full transition-all duration-300 shadow-lg ${isInFavorites
                                                 ? 'bg-green-500 hover:bg-green-600 cursor-default'
-                                                : 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600'
+                                                : 'bg-linear-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600'
                                                 } disabled:opacity-50 disabled:cursor-not-allowed`}
                                             title={isInFavorites ? "Ya en favoritos" : "Agregar a favoritos"}
                                         >
@@ -441,7 +441,7 @@ const Catalog = () => {
             {!loading && !error && movies.length === 0 && (
                 <div className="bg-white rounded-2xl shadow-md p-12 text-center">
                     <div className="max-w-md mx-auto">
-                        <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl inline-block mb-6">
+                        <div className="p-4 bg-linear-to-r from-blue-50 to-indigo-50 rounded-2xl inline-block mb-6">
                             <Film className="size-16 text-blue-600" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-800 mb-3">
@@ -459,7 +459,7 @@ const Catalog = () => {
                                         setSearchTerm(suggestion)
                                         setTimeout(() => handleSearch(suggestion), 50)
                                     }}
-                                    className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 text-gray-700 rounded-xl transition-all duration-300 font-medium border border-gray-200 hover:border-gray-300 text-sm"
+                                    className="px-4 py-3 bg-linear-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 text-gray-700 rounded-xl transition-all duration-300 font-medium border border-gray-200 hover:border-gray-300 text-sm"
                                 >
                                     {suggestion}
                                 </button>
