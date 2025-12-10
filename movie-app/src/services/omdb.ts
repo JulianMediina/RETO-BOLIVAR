@@ -1,139 +1,132 @@
-import axios, { AxiosError } from "axios";
-import type { PosterResult } from "../hooks/usePoster";
+import axios from 'axios';
+import type { OMDbResponse, PosterData } from '../types';
 
-const OMDB_API_KEY: string | undefined = import.meta.env.VITE_OMDB_API_KEY;
-const OMDB_BASE_URL = "https://www.omdbapi.com/";
+const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
+const OMDB_BASE_URL = 'https://www.omdbapi.com/';
 
-// ---------------------------------------
-// Tipos específicos de OMDb
-// ---------------------------------------
+/**
+ * Servicio para interactuar con la API de OMDb
+ */
 
-export interface OmdbMovieResponse {
-  Response: "True" | "False";
-  Error?: string;
-  Title?: string;
-  Year?: string;
-  Director?: string;
-  Genre?: string;
-  Plot?: string;
-  Poster?: string;
-}
-
-export interface OmdbSearchResult {
-  Search: Array<{
-    Title: string;
-    Year: string;
-    imdbID: string;
-    Poster: string;
-  }>;
-  totalResults: string;
-  Response: "True" | "False";
-}
-
-// ---------------------------------------
-// Servicio: Buscar película por título
-// ---------------------------------------
-
-export const fetchPosterByTitle = async (
-  title: string
-): Promise<PosterResult> => {
-  if (!title.trim()) {
-    throw new Error("El título es requerido");
-  }
-
-  if (!OMDB_API_KEY) {
-    throw new Error("API Key de OMDb no configurada");
-  }
-
+/**
+ * Buscar película por título y obtener su poster
+ * @param {string} title - Título de la película
+ * @returns {Promise<PosterData>}
+ */
+export const fetchPosterByTitle = async (title: string): Promise<PosterData> => {
   try {
-    const response = await axios.get<OmdbMovieResponse>(OMDB_BASE_URL, {
+    if (!title || !title.trim()) {
+      throw new Error('El título es requerido');
+    }
+
+    if (!OMDB_API_KEY) {
+      throw new Error('API Key de OMDb no configurada');
+    }
+
+    const response = await axios.get<OMDbResponse>(OMDB_BASE_URL, {
       params: {
         apikey: OMDB_API_KEY,
         t: title.trim(),
-        type: "movie",
+        type: 'movie',
       },
-      timeout: 10000,
+      timeout: 10000, // 10 segundos de timeout
     });
 
-    const data = response.data;
-
-    if (data.Response === "False") {
+    // Verificar si se encontró la película
+    if (response.data.Response === 'False') {
       return {
         found: false,
-        poster: undefined,
-        error: data.Error ?? "Película no encontrada",
+        poster: null,
+        error: response.data.Error || 'Película no encontrada',
       };
     }
 
+    // Extraer información relevante
+    const poster = response.data.Poster !== 'N/A' ? response.data.Poster : null;
+
     return {
       found: true,
-      poster: data.Poster !== "N/A" ? data.Poster : undefined,
-      title: data.Title,
-      year: data.Year,
-      director: data.Director,
-      genre: data.Genre,
+      poster,
+      title: response.data.Title,
+      year: response.data.Year,
+      director: response.data.Director,
+      genre: response.data.Genre,
+      plot: response.data.Plot,
     };
   } catch (error) {
-    const err = error as AxiosError;
-
-    console.error("Error fetching poster from OMDb:", err);
-
-    if (err.code === "ECONNABORTED") {
-      throw new Error("Timeout al conectar con OMDb");
+    console.error('Error fetching poster from OMDb:', error);
+    
+    if (axios.isAxiosError(error)) {
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Timeout al conectar con OMDb');
+      }
+      
+      if (error.response) {
+        throw new Error(`Error de OMDb: ${error.response.status}`);
+      }
     }
-
-    if (err.response) {
-      throw new Error(`Error de OMDb: ${err.response.status}`);
-    }
-
-    throw new Error(err.message || "Error al buscar la película");
+    
+    throw new Error(error instanceof Error ? error.message : 'Error al buscar la película');
   }
 };
 
-// ---------------------------------------
-// Servicio: Buscar múltiples películas
-// ---------------------------------------
+/**
+ * Resultado de búsqueda de OMDb
+ */
+export interface OMDbSearchResult {
+  imdbID: string
+  Title: string
+  Year: string
+  Type: string
+  Poster: string
+}
 
-export const searchMovies = async (
-  searchTerm: string
-): Promise<OmdbSearchResult["Search"]> => {
-  if (!searchTerm.trim()) return [];
-
-  if (!OMDB_API_KEY) {
-      throw new Error("API Key de OMDb no configurada");
-  }
-
+/**
+ * Buscar películas por término de búsqueda
+ * @param {string} searchTerm - Término de búsqueda
+ * @returns {Promise<OMDbSearchResult[]>}
+ */
+export const searchMovies = async (searchTerm: string): Promise<OMDbSearchResult[]> => {
   try {
-    const response = await axios.get<OmdbSearchResult>(OMDB_BASE_URL, {
+    if (!searchTerm || !searchTerm.trim()) {
+      return []
+    }
+
+    if (!OMDB_API_KEY) {
+      throw new Error('API Key de OMDb no configurada')
+    }
+
+    const response = await axios.get(OMDB_BASE_URL, {
       params: {
         apikey: OMDB_API_KEY,
         s: searchTerm.trim(),
-        type: "movie",
+        type: 'movie',
       },
       timeout: 10000,
-    });
+    })
 
-    if (response.data.Response === "False") {
-      return [];
+    if (response.data.Response === 'False') {
+      return []
     }
 
-    return response.data.Search ?? [];
+    return response.data.Search || []
   } catch (error) {
-    console.error("Error searching movies from OMDb:", error);
-    throw error;
+    console.error('Error searching movies from OMDb:', error)
+    throw error
   }
-};
+}
 
-// ---------------------------------------
-// Utilidad: Validar URL de poster
-// ---------------------------------------
-
-export const isValidPosterUrl = (url: string): boolean => {
+/**
+ * Validar si una URL de poster es válida
+ * @param {string} url - URL del poster
+ * @returns {boolean}
+ */
+export const isValidPosterUrl = (url: string | undefined): boolean => {
   if (!url) return false;
-
+  
   try {
-    const parsed = new URL(url);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
+    const urlObj = new URL(url);
+    return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
   } catch {
     return false;
   }

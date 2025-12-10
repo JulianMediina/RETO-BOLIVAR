@@ -77,12 +77,12 @@ const Create = () => {
       </div>
 
       {/* Formulario */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <MovieForm
-          onSubmit={handleSubmit}
-          isLoading={isLoading}
-        />
-      </div>
+
+      <MovieForm
+        onSubmit={handleSubmit}
+        isLoading={isLoading}
+      />
+
 
       {/* Información adicional */}
       <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -90,7 +90,7 @@ const Create = () => {
           💡 Consejo
         </h3>
         <p className="text-sm text-blue-700">
-          Usa el botón "Buscar Poster" para obtener automáticamente la imagen de la película desde OMDb. 
+          Usa el botón "Buscar Poster" para obtener automáticamente la imagen de la película desde OMDb.
           Si la película no se encuentra, puedes continuar sin poster.
         </p>
       </div>

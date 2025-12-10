@@ -5,12 +5,36 @@ import { mutation, query } from "./_generated/server";
  * QUERIES - Obtener datos
  */
 
-// Obtener todas las películas del usuario actual
+// Obtener todas las películas del usuario (alias de getMovies para compatibilidad)
+export const getMovies = query({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (!args.userId) {
+      return [];
+    }
+    
+    const movies = await ctx.db
+      .query("movies")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .collect();
+    
+    return movies;
+  },
+});
+
+// Obtener todas las películas del usuario actual (misma funcionalidad que getMovies)
 export const listMovies = query({
   args: {
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!args.userId) {
+      return [];
+    }
+    
     const movies = await ctx.db
       .query("movies")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -30,34 +54,47 @@ export const getMovie = query({
   handler: async (ctx, args) => {
     const movie = await ctx.db.get(args.id);
     
-    // Verificar que la película pertenece al usuario
-    if (!movie || movie.userId !== args.userId) {
-      throw new Error("Película no encontrada o sin permisos");
+    if (!movie) {
+      throw new Error("Película no encontrada");
+    }
+    
+    if (movie.userId !== args.userId) {
+      throw new Error("No tienes permisos para ver esta película");
     }
     
     return movie;
   },
 });
 
-// Buscar películas por título
+// Buscar películas por título en la base de datos local
 export const searchMovies = query({
   args: {
     userId: v.string(),
     searchTerm: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.searchTerm.trim()) {
+    if (!args.searchTerm.trim() || !args.userId) {
       return [];
     }
     
-    const movies = await ctx.db
-      .query("movies")
-      .withSearchIndex("search_titulo", (q) =>
-        q.search("titulo", args.searchTerm).eq("userId", args.userId)
-      )
-      .collect();
-    
-    return movies;
+    try {
+      // Usar índice de búsqueda si está configurado, de lo contrario filtrar manualmente
+      const movies = await ctx.db
+        .query("movies")
+        .withIndex("by_user", (q) => q.eq("userId", args.userId))
+        .collect();
+      
+      const searchTerm = args.searchTerm.toLowerCase().trim();
+      
+      return movies.filter(movie => 
+        movie.titulo.toLowerCase().includes(searchTerm) ||
+        movie.director.toLowerCase().includes(searchTerm) ||
+        movie.genero.toLowerCase().includes(searchTerm)
+      );
+    } catch (error) {
+      console.error("Error en searchMovies:", error);
+      return [];
+    }
   },
 });
 
@@ -76,31 +113,69 @@ export const createMovie = mutation({
     poster: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Validaciones
-    if (!args.titulo.trim()) {
+    // Validaciones mejoradas
+    if (!args.userId?.trim()) {
+      throw new Error("ID de usuario requerido");
+    }
+    
+    const titulo = args.titulo.trim();
+    const genero = args.genero.trim();
+    const director = args.director.trim();
+    
+    if (!titulo) {
       throw new Error("El título es obligatorio");
     }
-    if (args.anio < 1800 || args.anio > new Date().getFullYear() + 5) {
-      throw new Error("Año inválido");
+    
+    if (titulo.length < 2) {
+      throw new Error("El título debe tener al menos 2 caracteres");
     }
-    if (!args.director.trim()) {
+    
+    if (!genero) {
+      throw new Error("El género es obligatorio");
+    }
+    
+    const currentYear = new Date().getFullYear();
+    if (args.anio < 1800 || args.anio > currentYear + 5) {
+      throw new Error(`Año inválido. Debe estar entre 1800 y ${currentYear + 5}`);
+    }
+    
+    if (!director) {
       throw new Error("El director es obligatorio");
     }
     
     const now = Date.now();
     
+    // Verificar si ya existe una película con el mismo título y año para este usuario
+    const existingMovies = await ctx.db
+      .query("movies")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
+    
+    const duplicate = existingMovies.find(movie => 
+      movie.titulo.toLowerCase() === titulo.toLowerCase() && 
+      movie.anio === args.anio
+    );
+    
+    if (duplicate) {
+      throw new Error("Ya tienes una película con este título y año en tu catálogo");
+    }
+    
     const movieId = await ctx.db.insert("movies", {
       userId: args.userId,
-      titulo: args.titulo.trim(),
-      genero: args.genero.trim(),
+      titulo: titulo,
+      genero: genero,
       anio: args.anio,
-      director: args.director.trim(),
-      poster: args.poster,
+      director: director,
+      poster: args.poster || "",
       createdAt: now,
       updatedAt: now,
     });
     
-    return movieId;
+    return { 
+      success: true, 
+      id: movieId,
+      message: "Película creada exitosamente"
+    };
   },
 });
 
@@ -118,32 +193,70 @@ export const updateMovie = mutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db.get(args.id);
     
-    // Verificar permisos
-    if (!existing || existing.userId !== args.userId) {
-      throw new Error("Película no encontrada o sin permisos");
+    if (!existing) {
+      throw new Error("Película no encontrada");
+    }
+    
+    if (existing.userId !== args.userId) {
+      throw new Error("No tienes permisos para editar esta película");
     }
     
     // Validaciones
-    if (!args.titulo.trim()) {
+    const titulo = args.titulo.trim();
+    const genero = args.genero.trim();
+    const director = args.director.trim();
+    
+    if (!titulo) {
       throw new Error("El título es obligatorio");
     }
-    if (args.anio < 1800 || args.anio > new Date().getFullYear() + 5) {
-      throw new Error("Año inválido");
+    
+    if (titulo.length < 2) {
+      throw new Error("El título debe tener al menos 2 caracteres");
     }
-    if (!args.director.trim()) {
+    
+    if (!genero) {
+      throw new Error("El género es obligatorio");
+    }
+    
+    const currentYear = new Date().getFullYear();
+    if (args.anio < 1800 || args.anio > currentYear + 5) {
+      throw new Error(`Año inválido. Debe estar entre 1800 y ${currentYear + 5}`);
+    }
+    
+    if (!director) {
       throw new Error("El director es obligatorio");
     }
     
+    // Verificar si otro registro tiene el mismo título y año
+    const existingMovies = await ctx.db
+      .query("movies")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
+    
+    const duplicate = existingMovies.find(movie => 
+      movie._id !== args.id &&
+      movie.titulo.toLowerCase() === titulo.toLowerCase() && 
+      movie.anio === args.anio
+    );
+    
+    if (duplicate) {
+      throw new Error("Ya tienes una película con este título y año en tu catálogo");
+    }
+    
     await ctx.db.patch(args.id, {
-      titulo: args.titulo.trim(),
-      genero: args.genero.trim(),
+      titulo: titulo,
+      genero: genero,
       anio: args.anio,
-      director: args.director.trim(),
-      poster: args.poster,
+      director: director,
+      poster: args.poster || existing.poster,
       updatedAt: Date.now(),
     });
     
-    return args.id;
+    return { 
+      success: true, 
+      id: args.id,
+      message: "Película actualizada exitosamente"
+    };
   },
 });
 
@@ -156,13 +269,112 @@ export const deleteMovie = mutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db.get(args.id);
     
-    // Verificar permisos
-    if (!existing || existing.userId !== args.userId) {
-      throw new Error("Película no encontrada o sin permisos");
+    if (!existing) {
+      throw new Error("Película no encontrada");
+    }
+    
+    if (existing.userId !== args.userId) {
+      throw new Error("No tienes permisos para eliminar esta película");
     }
     
     await ctx.db.delete(args.id);
     
-    return { success: true };
+    return { 
+      success: true, 
+      message: "Película eliminada exitosamente" 
+    };
+  },
+});
+
+/**
+ * QUERIES ADICIONALES - Para estadísticas y utilidades
+ */
+
+// Obtener estadísticas de películas del usuario
+export const getMovieStats = query({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (!args.userId) {
+      return null;
+    }
+    
+    const movies = await ctx.db
+      .query("movies")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
+    
+    if (movies.length === 0) {
+      return {
+        total: 0,
+        byYear: {},
+        byGenre: {},
+        latest: null,
+        oldest: null,
+      };
+    }
+    
+    // Agrupar por año
+    const byYear: Record<number, number> = {};
+    // Agrupar por género
+    const byGenre: Record<string, number> = {};
+    
+    let latest = movies[0];
+    let oldest = movies[0];
+    
+    movies.forEach(movie => {
+      // Por año
+      byYear[movie.anio] = (byYear[movie.anio] || 0) + 1;
+      
+      // Por género (separar múltiples géneros)
+      const generos = movie.genero.split(',').map(g => g.trim());
+      generos.forEach(genero => {
+        if (genero) {
+          byGenre[genero] = (byGenre[genero] || 0) + 1;
+        }
+      });
+      
+      // Encontrar más reciente y más antigua
+      if (movie.anio > latest.anio) latest = movie;
+      if (movie.anio < oldest.anio) oldest = movie;
+    });
+    
+    return {
+      total: movies.length,
+      byYear,
+      byGenre,
+      latest: {
+        titulo: latest.titulo,
+        anio: latest.anio,
+      },
+      oldest: {
+        titulo: oldest.titulo,
+        anio: oldest.anio,
+      },
+    };
+  },
+});
+
+// Obtener películas más recientes (para dashboard)
+export const getRecentMovies = query({
+  args: {
+    userId: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    if (!args.userId) {
+      return [];
+    }
+    
+    const limit = args.limit || 5;
+    
+    const movies = await ctx.db
+      .query("movies")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(limit);
+    
+    return movies;
   },
 });
