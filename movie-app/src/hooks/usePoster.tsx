@@ -5,7 +5,8 @@ import { fetchPosterByTitle } from "../services/omdb";
 
 export interface PosterResult {
   found: boolean;
-  poster?: string;
+  // CORRECCIÓN AQUÍ: Permitimos string, null o undefined
+  poster?: string | null; 
   title?: string;
   year?: string;
   genre?: string;
@@ -49,10 +50,12 @@ export const usePoster = (): UsePosterState => {
     setLoading(true);
 
     try {
+      // TypeScript infiere que result tiene campos con 'null'
       const result = await fetchPosterByTitle(title);
 
       if (result.found) {
-        setPosterData(result);
+        // Ahora sí es compatible porque PosterResult acepta null en poster
+        setPosterData(result); 
         return result;
       } else {
         setError(result.error || "No se encontró la película en OMDb");

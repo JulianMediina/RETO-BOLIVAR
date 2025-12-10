@@ -3,6 +3,7 @@ import { SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp } from '@clerk/cl
 import { ConvexProvider, ConvexReactClient } from 'convex/react'
 import Navbar from './components/NavBar'
 import Home from './pages/Home'
+import Catalog from './pages/Catalog'
 import Create from './pages/Create'
 import EditPage from './pages/Edit'
 
@@ -25,14 +26,14 @@ interface AppLayoutProps {
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
         {children}
       </main>
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="container mx-auto px-4 py-6 text-center text-gray-600 text-sm">
-          <p>© 2024 Mi Catálogo de Películas. Powered by React 19, Convex & Clerk.</p>
+          <p>Creado por Julian.mediina@gmail.com</p>
         </div>
       </footer>
     </div>
@@ -49,13 +50,13 @@ const ProtectedRoutes = () => {
         <AppLayout>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/catalog" element={<Catalog />} />
             <Route path="/create" element={<Create />} />
             <Route path="/edit/:id" element={<EditPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppLayout>
       </SignedIn>
-
       <SignedOut>
         <RedirectToSignIn />
       </SignedOut>
@@ -68,43 +69,41 @@ const ProtectedRoutes = () => {
  */
 const App = () => {
   return (
-    <ConvexProvider client={convex}>
-      <BrowserRouter>
+      <ConvexProvider client={convex}>
+        <BrowserRouter>
+          <Routes>
+            {/* Rutas de autenticación */}
+            <Route
+              path="/sign-in/*"
+              element={
+                <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-primary-50 to-primary-100">
+                  <SignIn 
+                    routing="path" 
+                    path="/sign-in" 
+                    signUpUrl="/sign-up"
+                  />
+                </div>
+              }
+            />
+            <Route
+              path="/sign-up/*"
+              element={
+                <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-primary-50 to-primary-100">
+                  <SignUp 
+                    routing="path" 
+                    path="/sign-up" 
+                    signInUrl="/sign-in"
+                  />
+                </div>
+              }
+            />
 
-        <Routes>
-          {/* Rutas de autenticación */}
-          <Route
-            path="/sign-in/*"
-            element={
-              <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
-                <SignIn
-                  routing="path"
-                  path="/sign-in"
-                  signUpUrl="/sign-up"
-                />
-              </div>
-            }
-          />
+            {/* Rutas protegidas */}
+            <Route path="/*" element={<ProtectedRoutes />} />
+          </Routes>
+        </BrowserRouter>
+      </ConvexProvider>
 
-          <Route
-            path="/sign-up/*"
-            element={
-              <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
-                <SignUp
-                  routing="path"
-                  path="/sign-up"
-                  signInUrl="/sign-in"
-                />
-              </div>
-            }
-          />
-
-          {/* Rutas protegidas */}
-          <Route path="/*" element={<ProtectedRoutes />} />
-        </Routes>
-
-      </BrowserRouter>
-    </ConvexProvider>
   )
 }
 
