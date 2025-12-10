@@ -1,49 +1,88 @@
-# Welcome to your Convex + React (Vite) + Clerkapp
+# MovieApp - Catálogo de Películas
 
-This is a [Convex](https://convex.dev/) project created with [`npm create convex`](https://www.npmjs.com/package/create-convex).
+Una aplicación moderna para gestionar tu colección personal de películas con búsqueda en tiempo real, autenticación segura y almacenamiento en la nube.
 
-After the initial setup (<2 minutes) you'll have a working full-stack app using:
+## Arquitectura de Alto Nivel
 
-- Convex as your backend (database, server logic)
-- [React](https://react.dev/) as your frontend (web page interactivity)
-- [Vite](https://vitest.dev/) for optimized web hosting
-- [Tailwind](https://tailwindcss.com/) for building great looking accessible UI
-- [Clerk](https://clerk.com/) for authentication
+### Stack Tecnológico
 
-## Get started
+- **Frontend**: React 18 con TypeScript y Vite
+- **Estilos**: Tailwind CSS
+- **Autenticación**: Clerk
+- **Backend y Base de Datos**: Convex
+- **API Externa**: OMDb API
 
-If you just cloned this codebase and didn't use `npm create convex`, run:
+### Diagrama de Flujo
+Usuario → React Frontend → Clerk (Autenticación) → Convex (Backend/DB) → OMDb API
 
+text
+
+### Características Principales
+
+- 🔐 Autenticación segura con Clerk
+- 🔍 Búsqueda de películas en tiempo real con OMDb API
+- 🗄️ Almacenamiento en la nube con Convex
+- 📱 Diseño responsivo con Tailwind CSS
+- ⚡ Desarrollo rápido con Vite
+
+## Prerrequisitos
+
+- Node.js 18 o superior
+- npm 9 o superior (o yarn/pnpm)
+- Cuentas en los siguientes servicios (todos gratuitos):
+  - [Clerk](https://clerk.com/)
+  - [Convex](https://convex.dev/)
+  - [OMDb API](http://www.omdbapi.com/apikey.aspx)
+
+## Configuración del Proyecto
+
+### 1. Clonar el repositorio
+
+```bash
+git clone <https://github.com/JulianMediina/RETO-BOLIVAR.git>
+cd movie-app
 ```
+
+### 2. Instalar dependencias
+
+```bash
 npm install
+```
+
+
+### 3. Iniciar la aplicación
+
+En la terminal principal, ejecuta:
+
+```bash
 npm run dev
 ```
 
-If you're reading this README on GitHub and want to use this template, run:
+## Estructura del Proyecto
+
+text
 
 ```
-npm create convex@latest -- -t react-vite-clerk
+movie-app/
+├── public/
+├── src/
+│   ├── components/      # Componentes reutilizables
+│   ├── pages/           # Páginas de la aplicación
+│   ├── services/        # Servicios (OMDb API)
+│   ├── types/           # Tipos TypeScript
+│   ├── convex/          # Backend Convex
+│   │   ├── schema.ts    # Esquema de la base de datos
+│   │   ├── movies.ts    # Funciones de Convex para películas
+│   │   └── _generated/  # Código generado por Convex
+│   ├── App.tsx          # Componente principal
+│   └── main.tsx         # Punto de entrada
+├── .env.local           # Variables de entorno (no versionado)
+├── package.json
+├── vite.config.ts
+└── README.md
 ```
 
-Then:
+## Comandos Disponibles
 
-1. Follow steps 1 to 3 in the [Clerk onboarding guide](https://docs.convex.dev/auth/clerk#get-started)
-2. Paste the Issuer URL as `CLERK_JWT_ISSUER_DOMAIN` to your dev deployment environment variable settings on the Convex dashboard (see [docs](https://docs.convex.dev/auth/clerk#configuring-dev-and-prod-instances))
-3. Paste your publishable key as `VITE_CLERK_PUBLISHABLE_KEY="<your publishable key>"` to the `.env.local` file in this directory.
-
-If you want to sync Clerk user data via webhooks, check out this [example repo](https://github.com/thomasballinger/convex-clerk-users-table/).
-
-## Learn more
-
-To learn more about developing your project with Convex, check out:
-
-- The [Tour of Convex](https://docs.convex.dev/get-started) for a thorough introduction to Convex principles.
-- The rest of [Convex docs](https://docs.convex.dev/) to learn about all Convex features.
-- [Stack](https://stack.convex.dev/) for in-depth articles on advanced topics.
-
-## Join the community
-
-Join thousands of developers building full-stack apps with Convex:
-
-- Join the [Convex Discord community](https://convex.dev/community) to get help in real-time.
-- Follow [Convex on GitHub](https://github.com/get-convex/), star and contribute to the open-source implementation of Convex.
+- `npm run dev` - Inicia el servidor de desarrollo  
+- `npm run build` - Construye la aplicación para producción  
