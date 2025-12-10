@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
-import { Search, Heart, Loader2, Film, Star, Filter, X, TrendingUp, ChevronRight } from 'lucide-react'
+import { Search, Heart, Loader2, Film, Filter, X, TrendingUp, ChevronRight } from 'lucide-react'
 import { searchMovies, fetchPosterByTitle, type OMDbSearchResult } from '../services/omdb'
 
 // Componente para manejar imágenes con fallback
