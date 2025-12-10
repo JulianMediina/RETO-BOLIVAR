@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
-import { Search, Heart, Loader2, Film, Filter, X, TrendingUp, ChevronRight } from 'lucide-react'
+import { Search, Heart, Loader2, Film, X, TrendingUp, ChevronRight } from 'lucide-react'
 import { searchMovies, fetchPosterByTitle, type OMDbSearchResult } from '../services/omdb'
 
 // Componente para manejar imágenes con fallback
@@ -71,7 +71,7 @@ const Catalog = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [addingMovie, setAddingMovie] = useState<string | null>(null)
-    const [filter, setFilter] = useState<'all' | 'movie' | 'series'>('all')
+    const [filter] = useState<'all' | 'movie'>('all')
     const [suggestions] = useState<string[]>([
         'The Godfather', 'Inception', 'Pulp Fiction', 'The Dark Knight',
         'Fight Club', 'Forrest Gump', 'The Matrix', 'Interstellar'
@@ -254,7 +254,7 @@ const Catalog = () => {
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onKeyPress={handleKeyPress}
-                                placeholder="Buscar películas, series, actores..."
+                                placeholder="Buscar películas, actores..."
                                 className="w-full pl-12 pr-36 py-4 bg-white rounded-xl shadow-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-800 placeholder-gray-400 text-lg border border-gray-200"
                             />
                             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
@@ -273,40 +273,6 @@ const Catalog = () => {
                                     )}
                                 </button>
                             </div>
-                        </div>
-
-                        {/* Filtros */}
-                        <div className="flex flex-wrap gap-3 mt-4">
-                            <button
-                                onClick={() => setFilter('all')}
-                                className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all ${filter === 'all'
-                                    ? 'bg-white text-blue-600 shadow-md'
-                                    : 'bg-white/20 text-white hover:bg-white/30'
-                                    }`}
-                            >
-                                <Filter className="size-4" />
-                                Todos
-                            </button>
-                            <button
-                                onClick={() => setFilter('movie')}
-                                className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all ${filter === 'movie'
-                                    ? 'bg-white text-blue-600 shadow-md'
-                                    : 'bg-white/20 text-white hover:bg-white/30'
-                                    }`}
-                            >
-                                <Film className="size-4" />
-                                Películas
-                            </button>
-                            <button
-                                onClick={() => setFilter('series')}
-                                className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all ${filter === 'series'
-                                    ? 'bg-white text-blue-600 shadow-md'
-                                    : 'bg-white/20 text-white hover:bg-white/30'
-                                    }`}
-                            >
-                                <Film className="size-4" />
-                                Series
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -362,7 +328,7 @@ const Catalog = () => {
                                 {movies.length} resultados encontrados
                             </h2>
                             <div className="text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg">
-                                Mostrando {filter === 'all' ? 'todos' : filter === 'movie' ? 'películas' : 'series'}
+                                Mostrando {filter === 'all' ? 'todos' : filter === 'movie'}
                             </div>
                         </div>
                     </div>
@@ -448,7 +414,7 @@ const Catalog = () => {
                             Explora el universo del cine
                         </h3>
                         <p className="text-gray-600 mb-8">
-                            Busca entre miles de películas y series. Agrega tus favoritos a tu colección personal.
+                            Busca entre miles de películas. Agrega tus favoritos a tu colección personal.
                         </p>
 
                         <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
